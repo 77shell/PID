@@ -24,7 +24,8 @@
 /* Simulated dynamical system (first order) */
 float TestSystem_Update(float inp);
 
-int main()
+int
+main()
 {
     /* Initialise PID controller */
     PIDController pid = { PID_KP, PID_KI, PID_KD,
@@ -38,7 +39,7 @@ int main()
     /* Simulate response using test system */
     float setpoint = 1.0f;
 
-    printf("Time (s)\tSystem Output\tControllerOutput\r\n");
+    printf("Time (s),System Output,ControllerOutput\r\n");
     for (float t = 0.0f; t <= SIMULATION_TIME_MAX; t += SAMPLE_TIME_S) {
 
         /* Get measurement from system */
@@ -47,15 +48,15 @@ int main()
         /* Compute new control signal */
         PIDController_Update(&pid, setpoint, measurement);
 
-        printf("%f\t%f\t%f\r\n", t, measurement, pid.out);
-
+        printf("%f,%f,%f\r\n", t, measurement, pid.out);
     }
 
     return 0;
 }
 
-float TestSystem_Update(float inp) {
-
+float
+TestSystem_Update(float inp)
+{
     static float output = 0.0f;
     static const float alpha = 0.02f;
 
