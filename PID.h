@@ -1,6 +1,8 @@
 #ifndef PID_CONTROLLER_H
 #define PID_CONTROLLER_H
 
+#include <stdio.h>
+
 typedef struct {
 
 	/* Controller gains */
@@ -33,7 +35,13 @@ typedef struct {
 
 } PIDController;
 
+typedef struct {
+	float out; /* Duty(%): Command to pump VFDs */
+	float max;
+	float min;
+} control_signal_t;
+
 void  PIDController_Init(PIDController *pid);
-float PIDController_Update(PIDController *pid, float setpoint, float measurement);
+float PIDController_Update(PIDController *pid, float setpoint, float measurement, FILE*);
 
 #endif

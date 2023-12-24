@@ -14,19 +14,17 @@ PIDController_Init(PIDController *pid)
 }
 
 float
-PIDController_Update(PIDController *pid, float setpoint, float measurement)
+PIDController_Update(PIDController *pid, float setpoint, float measurement, FILE *fp)
 {
 	/*
 	 * Error signal
 	 */
 	float error = setpoint - measurement;
 
-
 	/*
 	 * Proportional
 	 */
 	float proportional = pid->Kp * error;
-
 
 	/*
 	 * Integral
@@ -74,6 +72,7 @@ PIDController_Update(PIDController *pid, float setpoint, float measurement)
 	 * Compute output and apply limits
 	 */
 	pid->out = proportional + pid->integrator + pid->differentiator;
+	fprintf(fp, "%f\t%f\t%f\t%f\n", pid->out, proportional, pid->integrator, pid->differentiator);
 
 	if (pid->out > pid->limMax) {
 
@@ -82,7 +81,6 @@ PIDController_Update(PIDController *pid, float setpoint, float measurement)
 	} else if (pid->out < pid->limMin) {
 
 		pid->out = pid->limMin;
-
 	}
 
 	/* Store error and measurement for later use */
