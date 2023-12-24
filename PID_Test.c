@@ -27,6 +27,13 @@ float TestSystem_Update(float inp);
 int
 main()
 {
+	const char *file_name = "output.csv";
+	FILE *outfp = fopen(file_name, "w+");
+	if (!outfp) {
+		perror(file_name);
+		exit(EXIT_FAILURE);
+	}
+
 	/* Initialise PID controller */
 	PIDController pid = { PID_KP, PID_KI, PID_KD,
 			      PID_TAU,
@@ -39,7 +46,7 @@ main()
 	/* Simulate response using test system */
 	float setpoint = 1.0f;
 
-	printf("Time (s),System Output,ControllerOutput\r\n");
+	fprintf(outfp, "Time (s),System Output,Controller Output\n");
 	for (float t = 0.0f; t <= SIMULATION_TIME_MAX; t += SAMPLE_TIME_S) {
 
 		/* Get measurement from system */
@@ -48,9 +55,10 @@ main()
 		/* Compute new control signal */
 		PIDController_Update(&pid, setpoint, measurement);
 
-		printf("%f,%f,%f\r\n", t, measurement, pid.out);
+		fprintf(outfp, "%f,%f,%f\n", t, measurement, pid.out);
 	}
 
+	fclose(outfp);
 	return 0;
 }
 
