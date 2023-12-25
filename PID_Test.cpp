@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <utility>
 
 #include "PID.h"
 
@@ -24,6 +25,8 @@
 /* Simulated dynamical system (first order) */
 float TestSystem_Update(float inp);
 
+using namespace pidcontrol;
+
 int
 main()
 {
@@ -36,18 +39,41 @@ main()
 		exit(EXIT_FAILURE);
 	}
 
-	/* Initialise PID controller */
-	PIDController pid = { PID_KP, PID_KI, PID_KD,
-			      PID_TAU,
-			      PID_LIM_MIN, PID_LIM_MAX,
-			      PID_LIM_MIN_INT, PID_LIM_MAX_INT,
-			      SAMPLE_TIME_S };
+	/* Initialise controller parameter */
+	ctrler_para_t para {
+		.gain {
+			.Kp = PID_KP,
+			.Ki = PID_KI,
+			.Kd = PID_KD
+		},
+		.T = SAMPLE_TIME_S,
+		.integral {
+			.val = 0.0f,
+			.prevError = 0.0f,
+			.limit {
+				.min = PID_LIM_MIN_INT,
+				.max = PID_LIM_MAX_INT
+			},
+		},
+		.derivative {
+			.val = 0.0f,
+			.tau = PID_TAU,
+			.prevMeasurement = 0.0f
+		},
+		.output {
+			.val = 0.0f,
+			.limit {
+				.min = PID_LIM_MIN,
+				.max = PID_LIM_MAX
+			}
+		}
+	};
 
-	PIDController_Init(&pid);
+	plant_ctrl_t plant_ctrl {0.0f, 100.0f, 20.0f};
+	controller ctrller {std::move(para), plant_ctrl};
 
 	/* Simulate response using test system */
 	float setpoint_DP_psi = 50.0f;
-	control_signal_t ctrl = {0.0f, 100.0f, 20.0f};
 
 	fprintf(outfp,
 		"Time (sec),"
@@ -63,21 +89,15 @@ main()
 
 	for (float t = 0.0f; t <= SIMULATION_TIME_MAX; t += SAMPLE_TIME_S) {
 
+		float pid_output {ctrller.output()};
+
 		/* Get measurement from system */
-		float measurement = TestSystem_Update(pid.out);
+		float measurement = TestSystem_Update(pid_output);
 
 		/* Compute new control signal */
-		PIDController_Update(&pid, setpoint_DP_psi, measurement, pidfp);
+		ctrller.routine(setpoint_DP_psi, measurement);
 
-		/* Update control signal */
-		ctrl.out += pid.out;
-		if (ctrl.out > ctrl.max)
-			ctrl.out = ctrl.max;
-
-		else if (ctrl.out < ctrl.min)
-			ctrl.out = ctrl.min;
-
-		fprintf(outfp, "%f,%f,%f,%f\n", t, measurement, pid.out, ctrl.out);
+		fprintf(outfp, "%f,%f,%f,%f\n", t, measurement, pid_output, ctrller.ctrl_signal());
 	}
 
 	fclose(outfp);

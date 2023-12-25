@@ -63,7 +63,7 @@ objects := \
 all: CXXFLAGS += -O0 -ggdb
 all: $(objects)
 #	$(call make_libs)
-	$(CC) $(lib_paths) -fsanitize=address -fsanitize=leak -fstack-protector -pthread -o$(target) $(objects) $(LIBS)
+	$(CXX) $(lib_paths) -fsanitize=address -fsanitize=leak -fstack-protector -pthread -o$(target) $(objects) $(LIBS)
 
 .PHONY: clean
 clean:

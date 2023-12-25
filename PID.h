@@ -1,47 +1,79 @@
 #ifndef PID_CONTROLLER_H
 #define PID_CONTROLLER_H
 
-#include <stdio.h>
+namespace pidcontrol {
 
-typedef struct {
+	struct plant_ctrl_t {
+		float out;
+		float max;
+		float min;
+	};
 
-	/* Controller gains */
-	float Kp;
-	float Ki;
-	float Kd;
+	struct ctrler_para_t {
+		struct gain_t {
+			float Kp;
+			float Ki;
+			float Kd;
+		} gain;
 
-	/* Derivative low-pass filter time constant */
-	float tau;
+		/* Sample time (in seconds) */
+		float T;
 
-	/* Output limits */
-	float limMin;
-	float limMax;
+		struct integral_t {
+			float val;
+			float prevError;
 
-	/* Integrator limits */
-	float limMinInt;
-	float limMaxInt;
+			struct limit_t {
+				float min;
+				float max;
+			} limit;
+		} integral;
 
-	/* Sample time (in seconds) */
-	float T;
+		struct derivative_t {
+			float val;
+			float tau; /* Derivative low-pass filter time constant */
+			float prevMeasurement;
+		} derivative;
 
-	/* Controller "memory" */
-	float integrator;
-	float prevError;			/* Required for integrator */
-	float differentiator;
-	float prevMeasurement;		/* Required for differentiator */
+		struct output_t {
+			float val;
+			struct limit_t {
+				float min;
+				float max;
+			} limit;
+		} output;
 
-	/* Controller output */
-	float out;
+		float compute_output(float setpoint, float measurement);
+	};
 
-} PIDController;
+	class controller {
+	public:
+		controller(ctrler_para_t&&, plant_ctrl_t&);
 
-typedef struct {
-	float out; /* Duty(%): Command to pump VFDs */
-	float max;
-	float min;
-} control_signal_t;
+		ctrler_para_t ctrlerpara;
+		plant_ctrl_t plantctrl;
 
-void  PIDController_Init(PIDController *pid);
-float PIDController_Update(PIDController *pid, float setpoint, float measurement, FILE*);
+		/*
+		 * Run routine to update controller's update.
+		 *
+		 * The period of execution is sample time of the controller 
+		 * which is specified in ctrler_para_t.T.
+		 */
+		void routine(float setpoint, float measurement);
 
-#endif
+		/* 
+		 * controller's output is a difference compare to last ctrl_signal. 
+		 */
+		constexpr float output() const
+		{ return ctrlerpara.output.val; }
+
+		/*
+		 * A complete signal outputs to the plant
+		 */
+		float ctrl_signal() const
+		{ return plantctrl.out; }
+	};
+
+} // namespace pidcontrol
+
+#endif /* PID_Control */
