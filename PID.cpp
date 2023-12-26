@@ -2,7 +2,7 @@
 
 using namespace pidcontrol;
 
-controller::controller(ctrler_para_t &&p, plant_ctrl_t &c)
+controller::controller(ctrler_para_t &&p, plant_ctrl_t &&c)
 	: ctrlerpara {p}, plantctrl {c}
 {}
 
@@ -33,7 +33,7 @@ ctrler_para_t::compute_output(float setpoint, float measurement)
 	/*
 	 * Proportional
 	 */
-	const float proportional {gain.Kp * error};
+	proportional.val = gain.Kp * error;
 
 	/*
 	 * Integral
@@ -43,13 +43,13 @@ ctrler_para_t::compute_output(float setpoint, float measurement)
 	/* Integrator Anti-windup via dynamic integrator clamping
 	 *
 	 * Compute integrator limits */
-	if (output.limit.max > proportional)
-		integral.limit.max = output.limit.max - proportional;
+	if (output.limit.max > proportional.val)
+		integral.limit.max = output.limit.max - proportional.val;
 	else
 		integral.limit.max = 0.0f;
 
-	if (output.limit.min < proportional)
-		integral.limit.min = output.limit.min - proportional;
+	if (output.limit.min < proportional.val)
+		integral.limit.min = output.limit.min - proportional.val;
 	else
 		integral.limit.min = 0.0f;
 
@@ -70,7 +70,7 @@ ctrler_para_t::compute_output(float setpoint, float measurement)
 	/*
 	 * Compute output and apply limits
 	 */
-	float out = proportional + integral.val + derivative.val;
+	float out = proportional.val + integral.val + derivative.val;
 
 	if (out > output.limit.max)
 		out = output.limit.max;

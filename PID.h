@@ -19,6 +19,10 @@ namespace pidcontrol {
 		/* Sample time (in seconds) */
 		float T;
 
+		struct proportional_t {
+			float val;
+		} proportional;
+
 		struct integral_t {
 			float val;
 			float prevError;
@@ -35,6 +39,9 @@ namespace pidcontrol {
 			float prevMeasurement;
 		} derivative;
 
+		/* The output is a difference of control signal/command to the plant,
+		 * which doesn't include the complete control signal/command.
+		 */
 		struct output_t {
 			float val;
 			struct limit_t {
@@ -48,7 +55,7 @@ namespace pidcontrol {
 
 	class controller {
 	public:
-		controller(ctrler_para_t&&, plant_ctrl_t&);
+		controller(ctrler_para_t&&, plant_ctrl_t&&);
 
 		ctrler_para_t ctrlerpara;
 		plant_ctrl_t plantctrl;

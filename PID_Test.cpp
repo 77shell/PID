@@ -46,7 +46,12 @@ main()
 			.Ki = PID_KI,
 			.Kd = PID_KD
 		},
+
 		.T = SAMPLE_TIME_S,
+
+		.proportional {
+			.val = 0.0f
+		},
 		.integral {
 			.val = 0.0f,
 			.prevError = 0.0f,
@@ -69,8 +74,7 @@ main()
 		}
 	};
 
-	plant_ctrl_t plant_ctrl {0.0f, 100.0f, 20.0f};
-	controller ctrller {std::move(para), plant_ctrl};
+	controller ctrller {std::move(para), plant_ctrl_t {0.0f, 100.0f, 20.0f}};
 
 	/* Simulate response using test system */
 	float setpoint_DP_psi = 50.0f;
@@ -84,8 +88,8 @@ main()
 	fprintf(pidfp,
 		"PID out  \t"
 		"Proportional\t"
-		"Integrator\t"
-		"Differentiator\n");
+		"Integral\t"
+		"Derivative\n");
 
 	for (float t = 0.0f; t <= SIMULATION_TIME_MAX; t += SAMPLE_TIME_S) {
 
@@ -98,6 +102,7 @@ main()
 		ctrller.routine(setpoint_DP_psi, measurement);
 
 		fprintf(outfp, "%f,%f,%f,%f\n", t, measurement, pid_output, ctrller.ctrl_signal());
+		fprintf(pidfp, "%f = %f + %f + %f\n", ctrller.ctrlerpara.output.val, ctrller.ctrlerpara.proportional.val, ctrller.ctrlerpara.integral.val, ctrller.ctrlerpara.derivative.val);
 	}
 
 	fclose(outfp);
