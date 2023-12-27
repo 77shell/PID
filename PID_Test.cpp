@@ -5,11 +5,11 @@
 #include "PID.h"
 
 /* Controller parameters */
-#define PID_KP	0.9f
-#define PID_KI	0.01f
-#define PID_KD	1.0f
+#define PID_KP	2.0f
+#define PID_KI	0.1f
+#define PID_KD	0.5f
 
-#define PID_TAU 0.2f
+#define PID_TAU 0.3f
 
 #define PID_LIM_MIN -10.0f
 #define PID_LIM_MAX  10.0f
@@ -20,10 +20,10 @@
 #define SAMPLE_TIME_S 1.0f
 
 /* Maximum run-time of simulation */
-#define SIMULATION_TIME_MAX 120.0f
+#define SIMULATION_TIME_MAX 250.0f
 
 /* Simulated dynamical system (first order) */
-float TestSystem_Update(float inp);
+float Plant(float inp);
 
 using namespace pidcontrol;
 
@@ -96,7 +96,7 @@ main()
 		float pid_output {ctrller.output()};
 
 		/* Get measurement from system */
-		float measurement = TestSystem_Update(pid_output);
+		float measurement = Plant(pid_output);
 
 		/* Compute new control signal */
 		ctrller.routine(setpoint_DP_psi, measurement);
@@ -110,13 +110,19 @@ main()
 	return 0;
 }
 
-float
-TestSystem_Update(float inp)
-{
-	static float output_DP = 0.0f;
-	static const float alpha = 0.2f;
 
-	output_DP = (SAMPLE_TIME_S * inp + output_DP) / (1.0f + alpha * SAMPLE_TIME_S);
+/*
+ * Input : PID controller output
+ * Output: Plant output
+ */
+float
+Plant(float g_1)
+{
+	static float output_DP {0.0f};
+	static float g_0 {0.0f}; // Last input of controller
+
+	output_DP += SAMPLE_TIME_S * (g_1 + g_0) / 40;
+	g_0 = g_1;
 
 	return output_DP;
 }
