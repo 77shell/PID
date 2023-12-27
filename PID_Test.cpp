@@ -5,22 +5,22 @@
 #include "PID.h"
 
 /* Controller parameters */
-#define PID_KP	1.0f
-#define PID_KI	0.01f
+#define PID_KP	2.0f
+#define PID_KI	0.05f
 #define PID_KD	0.5f
 
 #define PID_TAU 0.3f
 
-#define PID_LIM_MIN -10.0f
-#define PID_LIM_MAX  10.0f
+#define PID_LIM_MIN -2.0f
+#define PID_LIM_MAX  2.0f
 
-#define PID_LIM_MIN_INT -6.0f
-#define PID_LIM_MAX_INT	 6.0f
+#define PID_LIM_MIN_INT -1.5f
+#define PID_LIM_MAX_INT	 1.5f
 
 #define SAMPLE_TIME_S 1.0f
 
 /* Maximum run-time of simulation */
-#define SIMULATION_TIME_MAX 150.0f
+#define SIMULATION_TIME_MAX 50.0f
 
 /* Simulated dynamical system (first order) */
 float Plant(float inp);
